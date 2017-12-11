@@ -16,40 +16,39 @@ Including another URLconf
 from django.conf.urls import url,include
 from django.contrib import admin
 from samplequery import views
-from django.contrib.auth.models import User
-from rest_framework import routers,serializers,viewsets
+from rest_framework.routers import DefaultRouter
+from rest_framework.schemas import get_schema_view
 
-# # rest framwork
-# class UserSerializer(serializers.HyperlinkedModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ('url','username','email','is_staff')
+schema_view = get_schema_view(title = 'Pastebin API')
 
-# class UserViewSet(viewsets.ModelViewSet):
-#     queryset = User.objects.all()
-#     serializer_class = UserSerializer
-
-# router = routers.DefaultRouter()
-# router.register(r'users',UserViewSet)
-
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = User
-        fields = ('url', 'username', 'email', 'is_staff')
-
-# ViewSets define the view behavior.
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
 
 # Routers provide an easy way of automatically determining the URL conf.
-router = routers.DefaultRouter()
-router.register(r'users', UserViewSet)
+router = DefaultRouter(trailing_slash=True)
+router.register(r'users', views.UserViewSet)
+router.register(r'record',views.RecordViewSet)
+router.register(r'tissue',views.TissuesViewSet)
+router.register(r'panel',views.PanelViewSet)
+
+# urlpatterns = [
+#     url(r'^$',views.api_root,name='api-root'),
+#     url(r'^api/',include(router.urls)),
+#     url(r'^admin/', admin.site.urls),
+#     #url(r'^$',views.index),
+#     url(r'^record/$',views.RecordList.as_view(),name='record-list'),
+#     url(r'^record/id/(?P<pk>[0-9]+)/$',views.RecordDetail.as_view(),name='record-detail'),
+#     url(r'^record/fid/(?P<full_id>[\d\w]+)/$',views.RecordDetail.as_view(),name='record-detail'),
+#     url(r'^tissue/$',views.TissuesList.as_view(),name='tissues-list'),
+#     url(r'^tissue/(?P<pk>cfDNA|FFPE|Normal)/$',views.TissuesDetail.as_view(),name='tissues-detail'),
+#     url(r'^panel/$',views.PanelList.as_view(),name='panel-list'),
+#     url(r'^panel/(?P<pk>[\d\w]+)/$',views.PanelDetail.as_view(),name='panel-detail'),
+#     url(r'^api-auth/',include('rest_framework.urls',namespace='rest_framework'))
+# ]
 
 urlpatterns = [
-    url(r'^api/',include(router.urls)),
+    url(r'^',include(router.urls)),
     url(r'^admin/', admin.site.urls),
-    #url(r'^$',views.index),
-    url(r'^samplequery/',include('samplequery.urls')),
-    url(r'^api-auth/',include('rest_framework.urls',namespace='rest_framework'))
+    url(r'^api-auth/',include('rest_framework.urls',namespace='rest_framework')),
+    url(r'^schema/$',schema_view),
+    url(r'^query',views.query,name='query'),
+    # url(r'^samplequery/query/',views.post_query,name='post-query')
 ]

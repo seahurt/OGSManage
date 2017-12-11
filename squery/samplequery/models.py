@@ -25,7 +25,6 @@ class Panel(models.Model):
         else:
             return False
 
-
 class Record(models.Model):
     full_id = models.CharField('Full ID',max_length=100,unique=True)
     og_id = models.CharField('OG ID',max_length=100)
@@ -59,6 +58,10 @@ class Record(models.Model):
     @property
     def panel_subtype(self):
         return self.panel.panel_subtype
+
+    @property
+    def panel_name(self):
+        return self.panel.panel_name
 
     def getcfg(self):
         return(self.og_id,self.tissue_name,self.r1,self.r2,self.panel_path,self.panel_type)

@@ -78,10 +78,10 @@ WSGI_APPLICATION = 'squery.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': '',
-        'HOST': '',
-        'USER': '',
-        'PASSWORD': '',
+        'NAME': 'ogsample',
+        'HOST': '192.168.1.223',
+        'USER': 'dbuser',
+        'PASSWORD': 'dbog1234',
 
     }
 
@@ -127,8 +127,14 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES':[
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ]
+
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE':10
 }
 
+    # 'DEFAULT_PERMISSION_CLASSES':[
+    #     'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    # ],
+
+# url
+APPEND_SLASH = True

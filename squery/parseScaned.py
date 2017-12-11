@@ -9,7 +9,7 @@ django.setup()
 from samplequery import store2db
 def run_dbtask():
     #!python
-    pick = '/p299/user/og03/wangjianghao1706/django/squery/samplequery/1GeneTool/filePathList.pickle'
+    pick = '/p299/user/og03/wangjianghao1706/django/squery/pickle/filePathList.pickle'
     with open(pick,'rb') as p:
         filelist = pickle.load(p)
 
@@ -26,7 +26,8 @@ def run_dbtask():
         'Mb':'brca',
         '14b':'panel14b',
         '2b':'panel2b',
-        '8b':'panel8b'
+        '8b':'panel8b',
+        'unknow':'unknow'
     }
 
     tissueDict = {
@@ -36,23 +37,35 @@ def run_dbtask():
         'LEUD':'Normal',
         'FRED':'FFPE',
         'HYTD':'FFPE',
-        'HYCFD':'FFPE'
+        'HYCFD':'FFPE',
+        'GD':'gDNA',
+
     }
     exceptList = []
     for file in filelist:
         dirname,basename = os.path.split(file)
-        fullid,suffix = basename.split('_',1)
+        try:
+            fullid,suffix = basename.split('_',1)
+        except:
+            exceptList.append(file)
+            print(file,"Cannot be splited")
+            continue
+
         if 'test' in basename:
+            exceptList.append(file)
             continue
         try:
-            ogid = re.search('OG[\d]{5,}|OG[\d]+OL[\d]+|HD[\d]+',fullid).group(0)
+            ogid = re.search('OG[\d]{5,}|OG[\d]+OL[\d]+|HD[\d]+|1G[\d]+',fullid).group(0)
             capm = re.search('(CA-PM-[\d]+|CA_PM_[\d]+)',dirname)
             if capm is None:
                 capm = 'CA-PM-Lost'
             else:
                 capm = capm.group(0)
-            tissue = re.search('CFD|FFPED|FNAD|LEUD|FRED|HYTD|HYCFD',fullid).group(0)
-            panel = re.search('[1-9]+b|M[b\d]+',fullid).group(0)
+            tissue = re.search('CFD|FFPED|FNAD|LEUD|FRED|HYTD|HYCFD|GD',fullid).group(0)
+            try:
+                panel = re.search('[1-9]+b|M[b\d]+',fullid).group(0)
+            except:
+                panel = 'unknow'
 
             tissue = tissueDict[tissue]
             panel = panelDict[panel]
@@ -77,10 +90,10 @@ def run_dbtask():
             exceptList.append(file)
             print(file,'cannot be parsed!')
             continue
-    with open('/p299/user/og03/wangjianghao1706/django/squery/samplequery/ogsample.pickle','wb') as og:
+    with open('/p299/user/og03/wangjianghao1706/django/squery/pickle/ogsample.pickle','wb') as og:
         pickle.dump(ogsample,og)
     print("%d file cannot be parse, which have been pickled to exceptList.pickle" %len(exceptList))
-    with open('exceptList.pickle','wb') as ep:
+    with open('/p299/user/og03/wangjianghao1706/django/squery/pickle/exceptList.pickle','wb') as ep:
         pickle.dump(exceptList,ep)
 
     dberrorlist = []
@@ -90,14 +103,18 @@ def run_dbtask():
         infolist = [fullid]+infolist
         try:
             store2db.save2db(infolist)
-        except BaseException as e:
+        except KeyError as e:
             print(e)
             dberrorlist.append(fullid)
 
             continue
     print("%d record cannot be store to db, which have been pickled to dberrorlist.pickle" %(len(dberrorlist)))
-    with open('/p299/user/og03/wangjianghao1706/django/squery/samplequery/dberrorlist.pickle','wb') as dp:
+    with open('/p299/user/og03/wangjianghao1706/django/squery/pickle/dberrorlist.pickle','wb') as dp:
         pickle.dump(dberrorlist,dp)
+    with open('/p299/user/og03/wangjianghao1706/django/squery/pickle/filelist.xls','w') as fx:
+        for file in filelist:
+            fx.write(file+'\n')
+        
 
 if __name__ == '__main__':
     run_dbtask()

@@ -2,15 +2,20 @@
 from django.forms import widgets
 from rest_framework import serializers
 from samplequery.models import Record,Tissues,Panel
+from django.contrib.auth.models import User
 
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = User
+        fields = ('url', 'username', 'email', 'is_staff')
 
 class RecordSerializer(serializers.ModelSerializer):
-    # tissue = serializers.ReadOnlyField(source='Tissues.tissue_short_name')
-    # panel = serializers.ReadOnlyField(source="Panel.panr.el_name")
+    tissue = serializers.HyperlinkedRelatedField(queryset=Tissues.objects.all(),view_name='tissues-detail')
+    panel = serializers.HyperlinkedRelatedField(queryset=Panel.objects.all(),view_name='panel-detail')
     class Meta():
         model = Record
         # fields = ('id','full_id','og_id','capm','r1','r2','tissue','panel','tissue_name','panel_path','panel_type')
-        fields = ('id','full_id','og_id','capm','r1','r2','tissue','panel','panel_path','panel_type')
+        fields = ('url','id','full_id','og_id','capm','r1','r2','tissue','tissue_name','panel','panel_path','panel_type','panel_name')
     
     # def create(self,validated_data):
     #     return Record.objects.create(**validated_data)
@@ -32,5 +37,15 @@ class RecordSerializer(serializers.ModelSerializer):
     #     og_id = data.get('og_id')
     #     capm = data.get('r1')
 
+class TissuesSerializer(serializers.HyperlinkedModelSerializer):
+    
+    class Meta:
+        model = Tissues
+        fields = ('url','tissue_short_name','tissue_full_name')
 
+class PanelSerializer(serializers.HyperlinkedModelSerializer):
+    # record = serializers.HyperlinkedRelatedField(many=True,view_name='record-detail',read_only=True)
 
+    class Meta:
+        model = Panel
+        fields = ('url','panel_name','panel_type','panel_path','panel_subtype')
