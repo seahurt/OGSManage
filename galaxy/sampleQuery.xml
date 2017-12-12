@@ -1,0 +1,86 @@
+<tool id="sampleQuery"
+      name="Query sample by API "
+      version="1.0"
+      profile="17.05">
+    <description>根据多种条件筛选样品，生成配置文件</description>
+    <command>
+        python /lustre/project/og03/Galaxy/Tumor_galaxy/tools/1Gene/sampleQuery.py $output $IDtype.ID $IDtype.type_selector $TissueType $PanelType $PanelSubType 
+
+    </command>
+    <inputs>
+        <!-- <param name="proj_file" type="data" format="txt,cfg" optional="True" label="Project file" help="Input the project file " /> -->
+        <conditional name="IDtype">
+            <param name="type_selector" type="select" label="Choose ID type">
+                <option value="full" >Full ID</option>
+                <option value="og" selected="True">OG ID</option>
+            </param>
+            <when value="full">
+                <param name="ID" type="text" area="True" size="20*50" value="" label="Full ID" help="Paste the Project full ID here.One ID each line." />        
+            </when>
+            <when value="og">
+                <param name="ID" type="text" area="True" size="20*50" value="" label="OG ID" help="Paste the Project ID here.One ID each line." />        
+            </when>
+        </conditional>         
+        
+        <param name="TissueType" type="select" label="Tissues">
+            <option value="cfDNA">cfDNA</option>
+            <option value="FFPE">FFPE</option>
+            <option value="Normal">Normal</option>
+            <option value="cfDNA,FFPE">Tumor(cfDNA+FFPE)</option>
+            <option value="gDNA">gDNA</option>
+            <option value="cfDNA,FFPE,Normal,gDNA" selected="true">All</option>
+        </param>
+
+        <param name="PanelType" type="select" label="Panels Type">
+            <option value="HC">HC</option>
+            <option value="AMP">AMP</option>
+            <option value="HC,AMP" selected="true">All</option>
+        </param>   
+        <param name="PanelSubType" type="select" label="Panels SubType">
+            <option value="p1p2">p1p2</option>
+            <option value="p1p4">p1p4</option>
+            <option value="p1p2p4">p1p2p4</option>
+            <option value="morgene7gene,morgene78,morgene50gene,morgeneBrca">subtype for AMP</option>
+            <option value="p1p2,p1p4,p1p2p4,p2p3p4,p2,p1,p4,morgene7gene,morgene78,morgene50gene,morgeneBrca" selected="true">All</option>
+        </param>       
+    </inputs>
+    <outputs>
+        <data format="txt" name="output" label="configration file"/>
+    </outputs>
+    <help>
+Full ID:
+
+  OG170250439T1CFD20kx9b1
+
+  OG170250728T1FNAD2kx9b1
+
+OG ID:
+
+  OG170250439
+
+  OG170250728
+
+Tissue Type:
+
+  Normal, cfDNA, FFPE, gDNA
+
+Panel Type:
+
+  HC, AMP
+
+Panel SubType:
+
+  p1p2
+
+  p1p4
+
+  p1p2p4
+
+  unknow( for AMP type panel)
+
+  All
+
+    
+    </help>
+
+</tool>

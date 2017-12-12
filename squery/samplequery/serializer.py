@@ -11,7 +11,10 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
 class RecordSerializer(serializers.ModelSerializer):
     tissue = serializers.HyperlinkedRelatedField(queryset=Tissues.objects.all(),view_name='tissues-detail')
+    # tissue = serializers.PrimaryKeyRelatedField()
     panel = serializers.HyperlinkedRelatedField(queryset=Panel.objects.all(),view_name='panel-detail')
+    # panel = serializers.PrimaryKeyRelatedField()
+
     class Meta():
         model = Record
         # fields = ('id','full_id','og_id','capm','r1','r2','tissue','panel','tissue_name','panel_path','panel_type')

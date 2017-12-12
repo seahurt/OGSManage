@@ -25,7 +25,7 @@ SECRET_KEY = '50$p#&gc@afpndnwpt!4bo_!1s(mj-ip=4l5a^97&@u+p(%*un'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.215']
+ALLOWED_HOSTS = ['192.168.1.215','192.168.1.212']
 
 
 # Application definition
@@ -129,7 +129,9 @@ STATIC_URL = '/static/'
 REST_FRAMEWORK = {
 
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE':10
+    'PAGE_SIZE':10,
+
+
 }
 
     # 'DEFAULT_PERMISSION_CLASSES':[
