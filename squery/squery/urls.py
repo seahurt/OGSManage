@@ -50,6 +50,9 @@ urlpatterns = [
     url(r'^api-auth/',include('rest_framework.urls',namespace='rest_framework')),
     url(r'^schema/$',schema_view),
     url(r'^query',views.query,name='query'),
+    url(r'^list/',views.RecordListView.as_view()),
+    url(r'^OG/(?P<og_id>OG[\d]+)',views.FindOG,name='FindOG'),
+    url(r'^FID/(?P<fid>OG[\d\w]+)',views.FindFullID,name='FindFull'),
     # url(r'^q/',views.RecordListView.as_view())
     # url(r'^samplequery/query/',views.post_query,name='post-query')
 ]

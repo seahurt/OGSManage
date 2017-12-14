@@ -19,10 +19,16 @@ from django.contrib.auth.models import User
 #def 
 def getRecords(queryDict):
     result = Record.objects.all() 
-    if 'full_id' in queryDict:
-        result = [x for x in result if x.full_id in queryDict['full_id']]
-    if 'og_id' in queryDict:
-        result = [x for x in result if x.og_id in queryDict['og_id']]
+    if 'full_id' in queryDict and 'og_id' not in queryDict:
+        # result = [x for x in result if x.full_id in queryDict['full_id']]
+        result = Record.objects.filter(full_id__in=queryDict['full_id'])
+    elif 'og_id' in queryDict and 'full_id' not in queryDict:
+        # result = [x for x in result if x.og_id in queryDict['og_id']]
+        result = Record.objects.filter(og_id__in=queryDict['og_id'])
+    elif 'og_id' in queryDict and 'full_id' in queryDict:
+        result = Record.objects.filter(og_id__in=queryDict['og_id'],full_id__in=queryDict['full_id'])
+    else:
+        result = Record.objects.all()
     if 'capm' in queryDict:
         result = [x for x in result if x.capm in queryDict['capm']]
     if 'tissue_name' in queryDict:
@@ -31,6 +37,7 @@ def getRecords(queryDict):
         result = [ x for x in result if x.panel_type in queryDict['panel_type']]
     if 'panel_subtype' in queryDict:
         result = [x for x in result if x.panel_subtype in queryDict['panel_subtype']]
+    # print("Find:"+str(len(result)))
     return result
 
 
@@ -45,34 +52,51 @@ class RecordViewSet(viewsets.ModelViewSet):
     serializer_class = RecordSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     
-# class RecordListView(generics.ListAPIView):
-#     serializer_class = RecordSerializer
+class RecordListView(generics.ListAPIView):
+    serializer_class = RecordSerializer
 
-#     def get_queryset(self):
-#         print(self.request.GET)
-#         queryset =  getRecords(self.request.GET)
-#         return queryset
+    def get_queryset(self):
+        # print(self.request.GET)
+        queryDict = dict(self.request.GET)
+        # print(queryDict)
+        # print(queryDict.get('full_id'))
+        queryset =  getRecords(queryDict)
+        # print(len(queryDict['full_id']))
+        return queryset
 
+@api_view(['GET'])
+def FindOG(request,og_id):
+    result = Record.objects.filter(og_id=og_id)
+    serializer_context = {'request': request}
+    serializer = RecordSerializer(result,many=True,context=serializer_context)
+    return Response(serializer.data,status=200)
+
+@api_view(['GET'])
+def FindFullID(request,fid):
+    result = Record.objects.filter(full_id=fid)
+    serializer_context = {'request': request}
+    serializer = RecordSerializer(result,many=True,context=serializer_context)
+    return Response(serializer.data,status=200)
 
 @api_view(['GET','POST'])
 def query(request):
     if request.method == 'POST':
         queryDict = json.loads(request.body)
-        print(queryDict)
+        # print(queryDict)
         result = getRecords(queryDict)
         serializer_context = {'request': request}
-        print("Query done!")
-        print(len(result))
+        # print("Query done!")
+        # print(len(result))
         serializer = RecordSerializer(result,many=True,context=serializer_context)
         # serializer = RecordSerializer(result,many=True) 
         return Response(serializer.data,status=200)
     elif request.method == 'GET':
-        querystring = request.GET.copy()
-        print(querystring)
-        keys = querystring.keys()
-        for key in keys:
-            querystring[key] = querystring[key].split(',')
-        result = getRecords(querystring)
+        queryDict = dict(request.GET)
+        # print(queryDict)
+        # keys = queryDict.keys()
+        # for key in keys:
+        #     queryDict[key] = queryDict[key].split(',')
+        result = getRecords(queryDict)
         serializer_context = {'request': request}
         serializer = RecordSerializer(result,many=True,context=serializer_context)
         # serializer = RecordSerializer(result,many=True)
