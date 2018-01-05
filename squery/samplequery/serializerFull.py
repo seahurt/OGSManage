@@ -9,7 +9,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         model = User
         fields = ('url', 'username', 'email', 'is_staff')
 
-class RecordSerializer(serializers.ModelSerializer):
+class RecordSerializerFull(serializers.ModelSerializer):
     tissue = serializers.HyperlinkedRelatedField(queryset=Tissues.objects.all(),view_name='tissues-detail')
     # tissue = serializers.PrimaryKeyRelatedField()
     panel = serializers.HyperlinkedRelatedField(queryset=Panel.objects.all(),view_name='panel-detail')
@@ -18,8 +18,8 @@ class RecordSerializer(serializers.ModelSerializer):
     class Meta():
         model = Record
         # fields = ('id','full_id','og_id','capm','r1','r2','tissue','panel','tissue_name','panel_path','panel_type')
-        fields = ('url','id','full_id','og_id','capm','r1','r2','tissue','tissue_name','panel','panel_path','panel_type','panel_name','getcfg')
-    
+        fields = ('url','id','full_id','og_id','capm','r1','r2','tissue','tissue_name','panel','panel_path','panel_type','panel_name','getcfg','getSampleInfo','getQc')
+
     # def create(self,validated_data):
     #     return Record.objects.create(**validated_data)
 
@@ -41,7 +41,7 @@ class RecordSerializer(serializers.ModelSerializer):
     #     capm = data.get('r1')
 
 class TissuesSerializer(serializers.HyperlinkedModelSerializer):
-    
+
     class Meta:
         model = Tissues
         fields = ('url','tissue_short_name','tissue_full_name')

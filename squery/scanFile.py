@@ -32,9 +32,9 @@ print('fullpath size',len(filePathList))
 
 #with open('filedict.pickle','wb') as fd:
 #    pickle.dump(filedict,fd)
-with open('/p299/user/og03/wangjianghao1706/django/squery/pickle/filePathList.pickle','wb') as fpl:
+with open('pickle/filePathList.pickle','wb') as fpl:
     pickle.dump(filePathList,fpl)
-with open('/p299/user/og03/wangjianghao1706/django/squery/pickle/filePathList.xls','w') as fx:
+with open('pickle/filePathList.xls','w') as fx:
     for file in filePathList:
         fx.write(file+'\n')
 

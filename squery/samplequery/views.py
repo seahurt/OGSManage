@@ -5,6 +5,9 @@
 # from rest_framework.parsers import JSONParser
 from samplequery.models import Record,Panel,Tissues
 from samplequery.serializer import RecordSerializer,TissuesSerializer,PanelSerializer,UserSerializer
+from samplequery.serializerFull import RecordSerializerFull
+# RecordSerializerFull add a property called <getSampleInfo> which need fetch data
+# from http://medicine.1gene.com.cn/v1/api/reportInfo
 import json
 # from django.utils.six import BytesIO
 from rest_framework import generics
@@ -16,9 +19,9 @@ from rest_framework import viewsets
 from django.contrib.auth.models import User
 # from rest_framework.request import Request
 # Create your views here.
-#def 
+#def
 def getRecords(queryDict):
-    result = Record.objects.all() 
+    result = Record.objects.all()
     if 'full_id' in queryDict and 'og_id' not in queryDict:
         # result = [x for x in result if x.full_id in queryDict['full_id']]
         result = Record.objects.filter(full_id__in=queryDict['full_id'])
@@ -30,28 +33,36 @@ def getRecords(queryDict):
     else:
         result = Record.objects.all()
     if 'capm' in queryDict:
-        result = [x for x in result if x.capm in queryDict['capm']]
+        # result = [x for x in result if x.capm in queryDict['capm']]
+        result = result.filter(capm__in=queryDict['capm'])
     if 'tissue_name' in queryDict:
-        result = [ x for x in result if x.tissue_name in queryDict['tissue_name']]
+        # result = [ x for x in result if x.tissue_name in queryDict['tissue_name']]
+        result = result.filter(tissue__tissue_name__in=queryDict['tissue_name'])
+    if 'panel_name' in queryDict:
+        result = result.filter(panel__panel_name__in=queryDict['panel_name'])
     if 'panel_type' in queryDict:
-        result = [ x for x in result if x.panel_type in queryDict['panel_type']]
+        # result = [ x for x in result if x.panel_type in queryDict['panel_type']]
+        result = result.filter(panel__panel_type__in=queryDict['panel_type'])
     if 'panel_subtype' in queryDict:
-        result = [x for x in result if x.panel_subtype in queryDict['panel_subtype']]
+        # result = [x for x in result if x.panel_subtype in queryDict['panel_subtype']]
+        result = result.filter(panel__panel_subtype__in=queryDict['panel_subtype'])
     # print("Find:"+str(len(result)))
     return result
 
 
-
+# API
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+# API
 class RecordViewSet(viewsets.ModelViewSet):
     # lookup_field = 'full_id'
     queryset = Record.objects.all()
     serializer_class = RecordSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    
+
+#API
 class RecordListView(generics.ListAPIView):
     serializer_class = RecordSerializer
 
@@ -63,21 +74,27 @@ class RecordListView(generics.ListAPIView):
         queryset =  getRecords(queryDict)
         # print(len(queryDict['full_id']))
         return queryset
-
+# API
 @api_view(['GET'])
 def FindOG(request,og_id):
     result = Record.objects.filter(og_id=og_id)
+    if len(result) == 0:
+        return Response(status=404)
     serializer_context = {'request': request}
-    serializer = RecordSerializer(result,many=True,context=serializer_context)
+    serializer = RecordSerializerFull(result,many=True,context=serializer_context)
     return Response(serializer.data,status=200)
 
+# API
 @api_view(['GET'])
 def FindFullID(request,fid):
     result = Record.objects.filter(full_id=fid)
+    if len(result) == 0:
+        return Response(status=404)
     serializer_context = {'request': request}
-    serializer = RecordSerializer(result,many=True,context=serializer_context)
+    serializer = RecordSerializerFull(result,many=True,context=serializer_context)
     return Response(serializer.data,status=200)
 
+#API
 @api_view(['GET','POST'])
 def query(request):
     if request.method == 'POST':
@@ -88,7 +105,7 @@ def query(request):
         # print("Query done!")
         # print(len(result))
         serializer = RecordSerializer(result,many=True,context=serializer_context)
-        # serializer = RecordSerializer(result,many=True) 
+        # serializer = RecordSerializer(result,many=True)
         return Response(serializer.data,status=200)
     elif request.method == 'GET':
         queryDict = dict(request.GET)
@@ -113,7 +130,7 @@ def query(request):
     'capm',[],
 }
 """
-
+# API
 class PanelViewSet(viewsets.ModelViewSet):
     queryset = Panel.objects.all()
     serializer_class = PanelSerializer
@@ -129,10 +146,11 @@ class PanelViewSet(viewsets.ModelViewSet):
 #     serializer_class = PanelSerializer
 #     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
+# API
 class TissuesViewSet(viewsets.ModelViewSet):
     queryset = Tissues.objects.all()
     serializer_class = TissuesSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)   
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
 # class TissuesList(generics.ListCreateAPIView):
 #     queryset = Tissues.objects.all()
@@ -189,3 +207,7 @@ class TissuesViewSet(viewsets.ModelViewSet):
     # elif request.method == 'DELETE':
     #     record.delete()
     #     return HttpResponse(status=204)
+
+#===============================================================================
+
+

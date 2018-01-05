@@ -1,17 +1,30 @@
 #!python
-import django
 import re
+import sys
 import os
-os.environ['DJANGO_SETTINGS_MODULE'] = 'squery.settings'
-# print(os.environ['DJANGO_SETTINGS_MODULE'])
-django.setup()
+import getpass
+import setup
+
+if sys.version_info.major!=3:
+    sys.exit("Please use python3!")
+setup.init()
 
 from samplequery.models import Record
-
-#allRecords = Record.objects.all()
-
-#for r in allRecords:
-#    r.delete()
-
-
-
+from django.contrib.auth import authenticate
+  #
+username = input("Username:")
+passwd = getpass.getpass()
+user =  authenticate(username=username,password=passwd)
+if user:
+    if user.is_superuser:
+        print("This will delete all records in the database!")
+        act = 'y' if input("Continue?[y/N]").lower()=='y' else 'n'
+        if act == 'y':
+            allRecords = Record.objects.all().delete()
+            sys.exit("Action completed!")
+        else:
+            sys.exit("Action aborted!")
+    else:
+        sys.exit("Permission not allowed!")
+else:
+    sys.exit("Username/Password not match!")

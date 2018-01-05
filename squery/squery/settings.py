@@ -81,7 +81,7 @@ DATABASES = {
         'NAME': 'ogsample',
         'HOST': '192.168.1.223',
         'USER': 'dbuser',
-        'PASSWORD': 'dbog1234',
+        'PASSWORD': 'admin1234',
         'TEST': {
                 'ENGINE': 'django.db.backends.sqlite3',
                 'NAME' : 'testdb',

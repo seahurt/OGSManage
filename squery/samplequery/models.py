@@ -1,11 +1,14 @@
 from django.db import models
 import os.path
+from repbin import get_md5_url
+from django.utils import timezone
+# import json
 # Create your models here.
 
 class Tissues(models.Model):
     tissue_short_name = models.CharField('Tissue name',max_length=20,primary_key=True)
     tissue_full_name = models.CharField('Tissue full name',max_length=100,blank=True)
-  
+
     def __str__(self):
         return self.tissue_short_name
 
@@ -33,7 +36,10 @@ class Record(models.Model):
     r2 = models.CharField('R2',max_length=500)
     tissue = models.ForeignKey(Tissues,on_delete=models.CASCADE)
     panel = models.ForeignKey(Panel,on_delete=models.CASCADE)
-    create_date = models.DateTimeField(auto_now_add=True)
+    create_date = models.DateTimeField('Disk date',null=True)
+    r1_size = models.CharField('R1 Size (MB)', max_length=20,null=True)
+    r2_size = models.CharField('R2 Size (MB)', max_length=20,null=True)
+    indb_date = models.DateTimeField('In DB date', auto_now_add=True,null=True)
 
     def __str__(self):
         return self.full_id
@@ -54,7 +60,7 @@ class Record(models.Model):
     @property
     def panel_type(self):
         return self.panel.panel_type
-    
+
     @property
     def panel_subtype(self):
         return self.panel.panel_subtype
@@ -63,6 +69,42 @@ class Record(models.Model):
     def panel_name(self):
         return self.panel.panel_name
 
+    @property
     def getcfg(self):
         return(self.og_id,self.tissue_name,self.r1,self.r2,self.panel_path,self.panel_type)
 
+    @property
+    def getSampleInfo(self):
+        # name
+        # gender
+        # age
+        # ID_number
+        # tumour_name
+        # doctor_name
+        # sample_list [{sample_type,sample_count,sample_unit,sampler_code,sampler_remarks,sampling_at,_id,}]
+        # hospital
+        # sample_receive_at
+        # report_at
+        # sortCodingName
+        r = get_md5_url.SampleInfo(self.og_id)
+        if r.data['success']:
+            # info = json.dumps(r.data['data'])
+            info = r.data['data']
+        else:
+            info = r.data
+        return info
+
+    @property
+    def getQc(self):
+        try:
+            qc = self.qc.qcinfo
+        except:
+            qc = 'Not available'
+        return qc
+
+class QC(models.Model):
+    record = models.OneToOneField(Record,on_delete=models.CASCADE,primary_key=True,)
+    qcinfo = models.CharField(max_length=500,blank=True)
+
+    def __str__(self):
+        return "QC for %s" %self.record.full_id

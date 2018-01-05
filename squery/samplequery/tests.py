@@ -1,6 +1,7 @@
 from django.test import TestCase,RequestFactory
 from samplequery.models import Record,Panel,Tissues
 from samplequery.views import getRecords,query,RecordListView
+from samplequery.views import FindOG,FindFullID
 import re
 import os
 import json
@@ -207,3 +208,54 @@ class RecordListViewTests(TestCase):
         # print(response.data)
         # print(response.__dict__)
         self.assertEqual(len(response.data.get('results')),8)
+
+class FindOGTest(TestCase):
+    """
+    Test view function : FindOG
+    """
+    def setUp(self):
+        setup()
+        self.factory = RequestFactory()
+    #fid_list = ['OG12345CFD3b','OG12346CFD9b','OG12347CFD11b','OG12345FFPE3b','OG12345LEUD3b',
+    #                'OG12346FFPE3b','OG12347FFPEM7','OG12348LEUD9b']
+    def test_get_exist_og(self):
+        og_id = 'OG12345'
+        request = self.factory.get('/OG/'+og_id)
+        response = FindOG(request,og_id)
+        # print(response.__dict__)
+        self.assertEqual(response.status_code,200)
+        self.assertEqual(len(response.data),3)
+
+    def test_get_nonexist_og(self):
+        og_id = 'OG111111'
+        request = self.factory.get('/OG/'+og_id)
+        response = FindOG(request,og_id)
+        # print(response.__dict__)
+        self.assertEqual(response.status_code,404)
+        
+
+class FindFullIDTest(TestCase):
+    """
+    Test view function : FindOG
+    """
+    def setUp(self):
+        setup()
+        self.factory = RequestFactory()
+    #fid_list = ['OG12345CFD3b','OG12346CFD9b','OG12347CFD11b','OG12345FFPE3b','OG12345LEUD3b',
+    #                'OG12346FFPE3b','OG12347FFPEM7','OG12348LEUD9b']
+    def test_get_exist_og(self):
+        fid = 'OG12345CFD3b'
+        request = self.factory.get('/OG/'+fid)
+        response = FindFullID(request,fid)
+        # print(response.__dict__)
+        self.assertEqual(response.status_code,200)
+        self.assertEqual(len(response.data),1)
+
+    def test_get_nonexist_og(self):
+        fid = 'OG111111CFD3b'
+        request = self.factory.get('/OG/'+fid)
+        response = FindFullID(request,fid)
+        # print(response.__dict__)
+        self.assertEqual(response.status_code,404) # browseable API retu
+        
+
