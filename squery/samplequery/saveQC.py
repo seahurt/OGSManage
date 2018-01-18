@@ -1,4 +1,6 @@
-from samplequery.models import Record,QC
+from samplequery.models import Record, QC
+# from django.core.exceptions import ObjectDoesNotExist
+
 
 def saveqc(info):
     # print(info)
@@ -6,13 +8,8 @@ def saveqc(info):
     fid = fid.split('-')[0]
     # print(fid)
     record = Record.objects.get(full_id=fid)
-    print('record found!')
-    try:
-        record.qc
-    except RelatedObjectDoesNotExist as e:
-        q = QC(record=record,qcinfo=info)
-        q.save()
-    else:
+    if hasattr(record, 'qc'):
         raise ValueError("QC already exists")
-
-
+    else:
+        q = QC(record=record, qcinfo=info)
+        q.save()

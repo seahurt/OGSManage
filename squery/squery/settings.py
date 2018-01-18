@@ -25,7 +25,7 @@ SECRET_KEY = '50$p#&gc@afpndnwpt!4bo_!1s(mj-ip=4l5a^97&@u+p(%*un'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.215','192.168.1.212']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'samplequery',
     'rest_framework',
+    'varystore',
 ]
 
 MIDDLEWARE = [
@@ -81,7 +82,7 @@ DATABASES = {
         'NAME': 'ogsample',
         'HOST': '192.168.1.223',
         'USER': 'dbuser',
-        'PASSWORD': 'admin1234',
+        'PASSWORD': 'dbog1234',
         'TEST': {
                 'ENGINE': 'django.db.backends.sqlite3',
                 'NAME' : 'testdb',
