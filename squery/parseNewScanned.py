@@ -1,18 +1,20 @@
 #!python
-import django
 import re
 import os
 import pickle
-from datetime import datetime
-os.environ['DJANGO_SETTINGS_MODULE'] = 'squery.settings'
-print(os.environ['DJANGO_SETTINGS_MODULE'])
-django.setup()
+import sys
+from datetime import date,datetime
+import setup
+setup.init()
 from samplequery import store2db
 
+if len(sys.argv)!=2:
+    print("Usage: python {0} <file.pickle>".format(sys.argv[0]))
+    sys.exit()
 
 def run_dbtask():
     """
-    1. load pickled file path list
+    1. load pickled file from sys argv
     2. extract full id from file name
     3. extract og id, panel, and tissue from full id
     4. extract capm, file size, file time
@@ -22,7 +24,7 @@ def run_dbtask():
     7. log parse error file and dump to pickle/exceptList.pickle
     8. log save2db error file and dump to pickle/dberrorlist.pickle
     """
-    pick = '../pickle/filePathList.pickle'
+    pick = sys.argv[1]
     with open(pick, 'rb') as p:
         filelist = pickle.load(p)
 
@@ -53,18 +55,18 @@ def run_dbtask():
         'HYCFD': 'cfDNA',
         'GD': 'gDNA',
     }
-    exceptList = []
+    parseExcept = dict()
     for file in filelist:
         dirname, basename = os.path.split(file)
         try:
             fullid, suffix = basename.split('_R', 1)
         except BaseException:
-            exceptList.append(file)
-            print(file, "Cannot be splited")
+            parseExcept[file] = 'Cannot be splited'
+            #print(file, "Cannot be splited")
             continue
 
         if 'test' in basename:
-            exceptList.append(file)
+            parseExcept[file] = 'ignore test'
             continue
         try:
             ogid = re.search('OG[\d]{5,}|OG[\d]+OL[\d]+|HD[\d]+|1G[\d]+', fullid).group(0)
@@ -108,20 +110,24 @@ def run_dbtask():
                 ogsample[fullid]['r2'] = r2
                 ogsample[fullid]['r2_size'] = r2_size
                 ogsample[fullid]['createtime'] = r2_createtime
-        except BaseException:
-            exceptList.append(file)
-            print(file, 'cannot be parsed!')
+        except BaseException as e:
+            parseExcept[file] = str(e)
             continue
 
     # write out parse error
-    with open('../pickle/ogsample.pickle', 'wb') as og:
-        pickle.dump(ogsample, og)
-    print("%d file cannot be parse,saved to pickle/exceptList.pickle" % len(exceptList))
-    with open('../pickle/exceptList.pickle', 'wb') as ep:
-        pickle.dump(exceptList, ep)
+    successLog = '../data/parsed_{0}.xls'.format(str(date.today()))
+    with open(successLog, 'w') as og:
+        for key in ogsample.keys():
+            og.write('\t'.join([key]+[str(ogsample[key][x]) for x in ogsample[key]])+'\n')
+    failParseLog = '../data/failParse_{0}.xls'.format(str(date.today()))
+    print("%d file cannot be parse" % len(parseExcept))
+    with open(failParseLog,'w') as ep:
+        for key in parseExcept:
+            ep.write('\t'.join([key]+[parseExcept[key]])+'\n')
 
     # store to db
-    dberrorlist = []
+    new_batch_fullid = []
+    dberrorlist = dict()
     for fullid in ogsample.keys():
         idtitle = ['ogid', 'capm', 'r1', 'r2', 'tissue', 'panel', 'r1_size', 'r2_size', 'createtime']
         infolist = [ogsample[fullid][x] for x in idtitle]
@@ -129,16 +135,20 @@ def run_dbtask():
         try:
             store2db.save2db(infolist)
         except BaseException as e:
-            print(e)
-            dberrorlist.append(fullid)
+            #print(e)
+            dberrorlist[fullid] = str(e)
             continue
+        new_batch_fullid.append(fullid)
     # write out store to db error
     print("%d record cannot be store to db,saved to dberrorlist.pickle" % (len(dberrorlist)))
-    with open('pickle/dberrorlist.pickle', 'wb') as dp:
-        pickle.dump(dberrorlist, dp)
-    with open('pickle/filelist.xls', 'w') as fx:
-        for file in filelist:
-            fx.write(file + '\n')
+    dbfaillog = '../data/dbfail_{0}.xls'.format(str(date.today()))
+    with open(dbfaillog, 'w') as dp:
+        for key in dberrorlist.keys():
+            dp.write(key+'\t'+dberrorlist[key]+'\n')
+    new_batchid_file = '../data/fullid_batch_{0}.xls'.format(date.today())
+    with open(new_batchid_file, 'w') as nbf:
+        for id in new_batch_fullid:
+            nbf.write(id+'\n')
 
 
 if __name__ == '__main__':

@@ -54,8 +54,8 @@ def getRecords(queryDict):
     # print("Find:"+str(len(result)))
     # check outdate
     print(len(result))
-    if 'outdate_filter' in queryDict:
-        result = [x for x in result if x.isOutDated is False]
+    if 'isOutDated' in queryDict:
+        result = [x for x in result if x.isOutDated == queryDict['isOutDated']]
         print(len(result))
     return result
 
