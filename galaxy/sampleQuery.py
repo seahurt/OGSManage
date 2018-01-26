@@ -3,7 +3,10 @@ import sys
 import requests
 
 BaseURL = "http://192.168.1.215:9111/query/"
-output,Id,Id_type,tissue,panel,panelsubtype = sys.argv[1:]
+for x in range(len(sys.argv)):
+    print(x)
+    print(sys.argv[x])
+output,Id,Id_type,tissue,panel,panelsubtype,outputIDFormat,dataset = sys.argv[1:]
 
 o = open(output,'w')
 
@@ -28,6 +31,13 @@ qdict['og_id'] = og_id
 qdict['tissue_name'] = tissue
 qdict['panel_type'] = panel
 qdict['panel_subtype'] = panelsubtype
+if dataset == 'Regular':
+    qdict['isOutDated'] = False
+elif dataset == 'Deprecated':
+    qdict['isOutDated'] = True
+else:
+    pass
+
 
 for key in qdict.keys():
     if qdict[key]==[]:
@@ -40,7 +50,7 @@ else:
     print(response.content)
 
 
-fields = ['og_id','tissue_name','r1','r2','panel_path','panel_type']
+fields = [outputIDFormat,'tissue_name','r1','r2','panel_path','panel_type']
 for record in data:
     # data = json.loads(x)
     line = [record[x] for x in fields]
